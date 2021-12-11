@@ -48,6 +48,56 @@ void init_grid(int **grid, int start, int end) {
     }
 }
 
+int getNeighbors(int **grid, int i, int j) {  
+    int prev_i = i - 1;
+    int prev_j = j - 1;
+    int next_i = i + 1;
+    int next_j = j + 1;
+
+    //loop through the board's edges
+    if (prev_i < 0) {
+        prev_i = GRID_SIZE - 1;
+    }
+    if (prev_j < 0) {
+        prev_j = GRID_SIZE - 1;
+    }
+    if (next_i > GRID_SIZE - 1) {
+        next_i = 0;
+    }
+    if (next_j > GRID_SIZE - 1) {
+        next_j = 0;
+    }
+
+    //count number of living neighbors
+    int neighbor_num = 0;
+    if (grid[prev_i][prev_j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[prev_i][j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[prev_i][next_j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[i][prev_j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[i][next_j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[next_i][prev_j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[next_i][j] == LIVING) {
+        neighbor_num++;
+    }
+    if (grid[next_i][next_j] == LIVING) {
+        neighbor_num++;
+    }
+
+    return neighbor_num;
+}
+
 int count_living(int **grid, int start, int end) {
     int living_num = 0;
     for (int i = start; i < end; i++) {
