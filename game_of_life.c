@@ -98,6 +98,22 @@ int getNeighbors(int **grid, int i, int j) {
     return neighbor_num;
 }
 
+void fill_new_grid(int **grid, int **new_grid, int start, int end) {
+    for (int i = start; i < end; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            int neighbor_num = getNeighbors(grid, i, j);
+
+            if (grid[i][j] == LIVING && (neighbor_num < 2 || neighbor_num > 3)) {
+                new_grid[i][j] = DEAD;
+            } else if (grid[i][j] == DEAD && neighbor_num == 3) {
+                new_grid[i][j] = LIVING;
+            } else {
+                new_grid[i][j] = grid[i][j];
+            }
+        }
+    }
+}
+
 int count_living(int **grid, int start, int end) {
     int living_num = 0;
     for (int i = start; i < end; i++) {
@@ -120,6 +136,11 @@ int main(int argc, char *argv[]) {
         grid[i] = (int*) malloc(GRID_SIZE * sizeof(int));
     }
 
+    int **new_grid = (int**) malloc(GRID_SIZE * sizeof(int*));
+    for (int i = 0; i < GRID_SIZE; i++) {
+        new_grid[i] = (int*) malloc(GRID_SIZE * sizeof(int));
+    }
+
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &process_num);
     MPI_Comm_rank(MPI_COMM_WORLD, &process_rank);
@@ -129,15 +150,22 @@ int main(int argc, char *argv[]) {
 
     init_grid(grid, start, end);
 
+    fill_new_grid(grid, new_grid, start, end);
+    MPI_Barrier(MPI_COMM_WORLD);
+
     int sum;
     int partial_sum = count_living(grid, start, end);
     MPI_Reduce(&partial_sum, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    printf("%d\n", partial_sum);
+
+    int next_sum;
+    int next_partial_sum = count_living(new_grid, start, end);
+    MPI_Reduce(&next_partial_sum, &next_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
     MPI_Finalize();
 
     if (process_rank == 0) {
         printf("%d\n", sum);
+        printf("%d\n", next_sum);
     }
 
     return 0; 
