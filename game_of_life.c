@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define GRID_SIZE 64
+#define GRID_SIZE 2048
+#define GEN_NUM 2000
 #define LIVING 1
 #define DEAD 0
 
@@ -157,27 +158,32 @@ int main(int argc, char *argv[]) {
     int end = (process_rank + 1) * GRID_SIZE / process_num;;
 
     init_grid(grid, start, end);
-
-    fill_new_grid(grid, new_grid, start, end);
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    copy_new_grid(grid, new_grid, start, end);
     MPI_Barrier(MPI_COMM_WORLD);
 
     int sum;
     int partial_sum = count_living(grid, start, end);
     MPI_Reduce(&partial_sum, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
-    int next_sum;
-    int next_partial_sum = count_living(new_grid, start, end);
-    MPI_Reduce(&next_partial_sum, &next_sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (process_rank == 0) {
+        printf("Gen 0: %d\n", sum);
+    }
+
+    for (int i = 0; i < GEN_NUM; i++) {
+        fill_new_grid(grid, new_grid, start, end);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        copy_new_grid(grid, new_grid, start, end);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        partial_sum = count_living(grid, start, end);
+        MPI_Reduce(&partial_sum, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+        if (process_rank == 0) {
+            printf("Gen %d: %d\n", i + 1, sum);
+        }
+    }
 
     MPI_Finalize();
-
-    if (process_rank == 0) {
-        printf("%d\n", sum);
-        printf("%d\n", next_sum);
-    }
 
     return 0; 
 }
