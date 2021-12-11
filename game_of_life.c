@@ -114,6 +114,14 @@ void fill_new_grid(int **grid, int **new_grid, int start, int end) {
     }
 }
 
+void copy_new_grid(int **grid, int **new_grid, int start, int end) {
+    for (int i = start; i < end; i++) {
+        for (int j = 0; j < GRID_SIZE; j++) {
+            grid[i][j] = new_grid[i][j];
+        }
+    }
+}
+
 int count_living(int **grid, int start, int end) {
     int living_num = 0;
     for (int i = start; i < end; i++) {
@@ -151,6 +159,9 @@ int main(int argc, char *argv[]) {
     init_grid(grid, start, end);
 
     fill_new_grid(grid, new_grid, start, end);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    copy_new_grid(grid, new_grid, start, end);
     MPI_Barrier(MPI_COMM_WORLD);
 
     int sum;
