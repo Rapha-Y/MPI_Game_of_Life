@@ -8,3 +8,7 @@ Compilation:
 
 Execution:
 ```mpiexec -np 4 ./exec```
+
+# Status
+
+Finished at https://github.com/DAToneli/game_of_life_mpi/blob/main/mpigol.c
